@@ -36,11 +36,11 @@ To write a program to predict car prices using Linear Regression and Polynomial 
 ## Program:
 ```python
 '''
-Program to implement Linear and Polynomial Regression models for predicting car prices.
+Program to implement Linear and Polynomial Regression models for predicting car prices and test assumptions.
 Developed by: Sanjushri A
 RegisterNumber: 21223040187
 '''
-# Import necessary libraries
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -48,13 +48,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.metrics import mean_squared_error, r2_score
+import seaborn as sns
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 # Load the dataset
 url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-ML240EN-SkillsNetwork/labs/data/CarPrice_Assignment.csv"
 data = pd.read_csv(url)
-
-# Display first few rows
-print(data.head())
 
 # Select relevant features and target variable
 X = data[['enginesize']]  # Predictor
@@ -64,65 +63,64 @@ y = data['price']         # Target
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # ---- Linear Regression ----
-# Initialize and train the linear regression model
 linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
-
-# Make predictions using the linear regression model
 y_pred_linear = linear_model.predict(X_test)
 
-# Evaluate the linear regression model
-mse_linear = mean_squared_error(y_test, y_pred_linear)
-r2_linear = r2_score(y_test, y_pred_linear)
-
-print("Linear Regression MSE:", mse_linear)
-print("Linear Regression R^2 score:", r2_linear)
-
 # ---- Polynomial Regression ----
-# Transform the features for Polynomial Regression (degree = 2)
 poly = PolynomialFeatures(degree=2)
 X_train_poly = poly.fit_transform(X_train)
 X_test_poly = poly.transform(X_test)
-
-# Initialize and train the polynomial regression model
 poly_model = LinearRegression()
 poly_model.fit(X_train_poly, y_train)
-
-# Make predictions using the polynomial regression model
 y_pred_poly = poly_model.predict(X_test_poly)
 
-# Evaluate the polynomial regression model
-mse_poly = mean_squared_error(y_test, y_pred_poly)
-r2_poly = r2_score(y_test, y_pred_poly)
+# ---- Assumptions Testing ----
 
-print("Polynomial Regression MSE:", mse_poly)
-print("Polynomial Regression R^2 score:", r2_poly)
-
-# ---- Visualization ----
-# Plot the results for linear regression
-plt.scatter(X_test, y_test, color='red', label='Actual Prices')
-plt.plot(X_test, y_pred_linear, color='blue', label='Linear Regression')
-plt.title('Linear Regression for Predicting Car Prices')
-plt.xlabel('Engine Size')
-plt.ylabel('Price')
-plt.legend()
+# 1. Linearity: Scatterplot of actual vs predicted values
+plt.scatter(y_test, y_pred_linear, color='blue')
+plt.title('Linearity Check: Actual vs Predicted')
+plt.xlabel('Actual Prices')
+plt.ylabel('Predicted Prices')
+plt.axline([0, 0], [1, 1], color='red', linestyle='--')  # Perfect fit line
 plt.show()
 
-# Plot the results for polynomial regression
-plt.scatter(X_test, y_test, color='red', label='Actual Prices')
-plt.plot(X_test, y_pred_poly, color='green', label='Polynomial Regression')
-plt.title('Polynomial Regression for Predicting Car Prices')
-plt.xlabel('Engine Size')
-plt.ylabel('Price')
-plt.legend()
+# 2. Homoscedasticity: Residuals vs predicted values
+residuals = y_test - y_pred_linear
+plt.scatter(y_pred_linear, residuals, color='blue')
+plt.title('Homoscedasticity Check: Residuals vs Predicted')
+plt.xlabel('Predicted Prices')
+plt.ylabel('Residuals')
+plt.axhline(0, color='red', linestyle='--')
 plt.show()
 
+# 3. Normality: Histogram of residuals
+sns.histplot(residuals, kde=True, color='blue')
+plt.title('Normality Check: Residuals')
+plt.xlabel('Residuals')
+plt.show()
+
+# 4. Multicollinearity: VIF (only for multiple predictors)
+# Add this section if you include multiple predictors
+# X_features = data[['horsepower', 'curbweight', 'enginesize', 'highwaympg']]
+# vif_data = pd.DataFrame()
+# vif_data['Feature'] = X_features.columns
+# vif_data['VIF'] = [variance_inflation_factor(X_features.values, i) for i in range(X_features.shape[1])]
+# print("VIF Data:\n", vif_data)
+
+# ---- Evaluation Metrics ----
+print("Linear Regression MSE:", mean_squared_error(y_test, y_pred_linear))
+print("Linear Regression R² Score:", r2_score(y_test, y_pred_linear))
+print("Polynomial Regression MSE:", mean_squared_error(y_test, y_pred_poly))
+print("Polynomial Regression R² Score:", r2_score(y_test, y_pred_poly))
 ```
 
 ## Output:
-<img width="803" alt="Screenshot 2024-10-06 at 8 41 08 PM" src="https://github.com/user-attachments/assets/5c7f9995-1a09-4ef4-b512-40ae9f74fa05">
-<img width="803" alt="Screenshot 2024-10-06 at 8 46 12 PM" src="https://github.com/user-attachments/assets/25b34886-6c05-41ce-bac2-9b3f2f0b5b70">
-<img width="780" alt="Screenshot 2024-10-06 at 8 46 21 PM" src="https://github.com/user-attachments/assets/9eed5e90-e00a-460d-a2d5-d9d07d9910db">
+![image](https://github.com/user-attachments/assets/497f1c8b-0efe-4c00-a286-30b24543f2f1)
+![image](https://github.com/user-attachments/assets/0043cf54-9835-48b0-b654-6c1bd162d0af)
+![image](https://github.com/user-attachments/assets/fe162309-423d-4fe2-a973-642dba9bd9c9)
+![image](https://github.com/user-attachments/assets/9e875a9f-6120-4cbb-a9f2-245fee179ea9)
+
 
 
 ## Result:
